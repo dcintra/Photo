@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:padding="6dip" >
+    
+    <!-- Owner Name Field -->
+    <TextView
+        android:id="@+id/ownerName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/textViewTitle"
+        android:maxLength="15"
+        android:gravity="right"
+        android:text="@string/ownername"
+        android:layout_marginRight="5dip"
+        android:textSize="12sp" />
+    
+    
+	 
+	<!-- Photo Title Field -->
+    <TextView
+        android:id="@+id/textViewTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+		android:layout_alignTop="@+id/thumbnail"
+        android:layout_toRightOf="@+id/thumbnail"
+        android:maxLength="25"
+        android:ellipsize="end"
+        android:textColor="#040404"
+        android:textSize="15sp"
+        android:text="@string/title"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+	
+	<!-- Photo Description -->
+
+    <TextView
+        android:id="@+id/textViewDescription"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textViewTitle"
+        android:layout_toLeftOf="@+id/ownerName"
+        android:layout_toRightOf="@+id/thumbnail"
+        android:ellipsize="end"
+        android:lines="2"
+        android:maxLines="2"
+        android:text="@string/description"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textSize="12sp" />
+    
+<!-- Image  -->
+<LinearLayout
+    android:id="@+id/thumbnail"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="3dip"
+    android:layout_alignParentLeft="true"
+    android:layout_marginRight="5dip" >
+
+     <ImageView
+        android:id="@+id/icon"
+        android:layout_width="50dip"
+        android:layout_height="50dip"
+        android:contentDescription="@string/flickrPhoto"
+        android:src="@drawable/ic_launcher" />
+</LinearLayout>
+
+<!-- Date  -->
+<TextView
+    android:id="@+id/date"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignRight="@+id/ownerName"
+    android:layout_below="@+id/ownerName"
+    android:gravity="right"
+    android:text="@string/date"
+    android:textSize="12sp" />
+
+</RelativeLayout> 
