@@ -16,5 +16,6 @@
     <string name="search_hint">Search for Photos</string>
     <string name="date">Date</string>
     <string name="addressBook">Addressbook</string>
+    <string name="dialog_message">Bummer no photos found</string>
 
 </resources>

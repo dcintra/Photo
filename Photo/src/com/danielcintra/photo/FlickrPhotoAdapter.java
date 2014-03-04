@@ -19,7 +19,6 @@ public class FlickrPhotoAdapter extends BaseAdapter {
 	//private LayoutInflater inflater = null;
 	
 	public FlickrPhotoAdapter(Context a, ArrayList<FlickrPhoto> p) {
-		// TODO Auto-generated constructor stub
 		this.mContext = a;
 		this.photos = p;
 		
@@ -34,19 +33,16 @@ public class FlickrPhotoAdapter extends BaseAdapter {
 	
 	@Override
 	public int getCount() {
-		// TODO Auto-generated method stub
 		return photos.size();
 	}
 
 	@Override
 	public FlickrPhoto getItem(int position) {
-		// TODO Auto-generated method stub
 		return photos.get(position);
 	}
 
 	@Override
 	public long getItemId(int position) {
-		// TODO Auto-generated method stub
 		return photos.indexOf(getItem(position));
 	}
 
@@ -74,18 +70,18 @@ public class FlickrPhotoAdapter extends BaseAdapter {
 		}
 
 		FlickrPhoto photo = (FlickrPhoto) getItem(position);
+		//Only Display Year and month
 		String date = photo.getDate().substring(0, 7);
 		
 		holder.desc.setText(photo.getDesc());
 		holder.title.setText(photo.getTitle());
 		holder.oName.setText(photo.getOwner());
 		holder.date.setText(date);
+		
+		//Display the Photo as part of the list item and show a spinner whilst loading the image in the backround
 		UrlImageViewHelper.setUrlDrawable(holder.img, photo.imageURLSmall, R.drawable.ajax_loader);
 		
-		
-		
-		
-		
+
 		return convertView;
 		
 	

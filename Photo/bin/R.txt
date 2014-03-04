@@ -37,6 +37,7 @@ int string app_name 0x7f060004
 int string contact 0x7f06000b
 int string date 0x7f060011
 int string description 0x7f060008
+int string dialog_message 0x7f060013
 int string drawerTitle 0x7f06000e
 int string drawer_close 0x7f06000d
 int string drawer_open 0x7f06000c

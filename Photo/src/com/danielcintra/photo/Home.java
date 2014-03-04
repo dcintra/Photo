@@ -1,12 +1,13 @@
 package com.danielcintra.photo;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
-import eu.erikw.PullToRefreshListView;
-import eu.erikw.PullToRefreshListView.OnRefreshListener;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -17,6 +18,7 @@ import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -26,6 +28,9 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
+import android.widget.Toast;
+import eu.erikw.PullToRefreshListView;
+import eu.erikw.PullToRefreshListView.OnRefreshListener;
 
 public class Home extends ListActivity {
 
@@ -37,6 +42,9 @@ public class Home extends ListActivity {
 	ProgressDialog m_dialog;
 	static final int PICK_CONTACT= 1;
 	public static final String PREF_QUERY = "query";
+	public static final String API_KEY = "6ac3f568073aea1cca183c3ca08e974c&tags=";
+	public static final String FLICKR_PHOTO_SEARCH = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=";
+	public static final String FLICKR_PHOTO_SEARCH_END = "&page=1&extras=date_taken,owner_name,description";
 	PullToRefreshListView pullToRefreshList;
 	
 	@Override
@@ -44,9 +52,8 @@ public class Home extends ListActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_home);
 		
+		//Pull to refresh setup and listener
 		pullToRefreshList = (PullToRefreshListView) findViewById(android.R.id.list);
-		
-
 		pullToRefreshList.setOnRefreshListener(new OnRefreshListener() {
 			
 			@Override
@@ -58,11 +65,13 @@ public class Home extends ListActivity {
 				
 			}
 		});
-		
+
 		m_dialog = new ProgressDialog(this);
 		
+		//Perform hardcoded query so that app start up with photos vs blank screen
 		String homepage = "Dogs";
-		String url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=6ac3f568073aea1cca183c3ca08e974c&tags="+homepage+"&page=1&extras=date_taken,owner_name,description";
+		String url = FLICKR_PHOTO_SEARCH+API_KEY+homepage+FLICKR_PHOTO_SEARCH_END;
+		
 		getNextFlickrPage(url);
 		new DownloadXmlTask().execute(url);
 		
@@ -83,12 +92,13 @@ public class Home extends ListActivity {
 		});
     	
 
-
+		//Load Phone contacts into left drawer 
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
 		listContacts = new ContactsLoader(this).fetchAll();
 		ContactsAdapter adapterContacts = new ContactsAdapter(this, listContacts);
 		mDrawerList.setAdapter(adapterContacts);
 		
+		//When contact is clicked in drawer perform new search 
 		mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> adapter, View arg1, int position,
@@ -96,16 +106,24 @@ public class Home extends ListActivity {
 				// TODO Auto-generated method stub
 					Contacts contactListItem = (Contacts)  adapter.getItemAtPosition(position);
 					String contactName = contactListItem.name;
-					contactName = contactName.replace(' ', '&');
-					String url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=6ac3f568073aea1cca183c3ca08e974c&tags="+contactName+"&page=1&extras=date_taken,owner_name,description";
-					new DownloadXmlTask().execute(url);
+					
+					String url;
+					try {
+						url = FLICKR_PHOTO_SEARCH+API_KEY+URLEncoder.encode(contactName, "ISO-8859-1")+FLICKR_PHOTO_SEARCH_END;
+						
+						new DownloadXmlTask().execute(url);
+					} catch (UnsupportedEncodingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
 				
 				
 			}
 		});
 		
 
-
+		//Drawer settings 
 		mDrawerTitle = getTitle();
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
@@ -139,9 +157,7 @@ public class Home extends ListActivity {
 	
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		// If the nav drawer is open, hide action items related to the content view
-		//boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
-		
+	
 		return super.onPrepareOptionsMenu(menu);
 	}
 	 @Override
@@ -156,22 +172,21 @@ public class Home extends ListActivity {
 	        if (mDrawerToggle.onOptionsItemSelected(item)) {
 	          return true;
 	        } else if (item.getItemId() == R.id.action_addressBook){
+	        	
+	        	// Check if addressbook button was clicked on in Actionbar and handle with intent
+	        	
 	        	Intent i = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
 	        	i.setType(ContactsContract.Contacts.CONTENT_TYPE);
 	        	startActivityForResult(i, PICK_CONTACT);
-	        	
-	        	
-									
-	        }
-	        // Handle your other action bar items...
-	        
+					
+	        }	        
 
 	        return super.onOptionsItemSelected(item);
 	    }
 	 
 	 @Override
 	 protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		 // REQUEST_CODE is defined above
+		//Handle selected contact and refresh search results
 		 if (resultCode == RESULT_OK && requestCode == PICK_CONTACT) {
 			 // Extract name value from result extras
 			 Uri contactData = data.getData();
@@ -179,9 +194,16 @@ public class Home extends ListActivity {
 			 if (c.moveToFirst()) 
 			 {
 				 String name = c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-				 name = name.replace(' ', '&');
-				 String url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=6ac3f568073aea1cca183c3ca08e974c&tags="+name+"&page=1&extras=date_taken,owner_name,description";
-				 new DownloadXmlTask().execute(url);
+				 
+				 String url;
+				 try {
+					url = FLICKR_PHOTO_SEARCH+API_KEY+URLEncoder.encode(name, "ISO-8859-1")+FLICKR_PHOTO_SEARCH_END;
+					new DownloadXmlTask().execute(url);
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				 
 
 			 }		
 
@@ -199,20 +221,23 @@ public class Home extends ListActivity {
 	    
 	    searchView.setOnQueryTextListener(new OnQueryTextListener() {
 			
-		
+	    //Search Bar setup and functionality
 			public boolean onQueryTextSubmit(String query) {
-				// TODO Auto-generated method stub
-				query = query.replace(' ', '&');
-				String url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=6ac3f568073aea1cca183c3ca08e974c&tags="+query+"&page=1&extras=date_taken,owner_name,description";
+				
+				String url;
+				try {
+					url = FLICKR_PHOTO_SEARCH+API_KEY+URLEncoder.encode(query, "ISO-8859-1")+FLICKR_PHOTO_SEARCH_END;
+					new	DownloadXmlTask().execute(url);
+
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
 
 				
-				new	DownloadXmlTask().execute(url);
 				return true;
 			}
-			
-			
+	
 			public boolean onQueryTextChange(String newText) {
-				// TODO Auto-generated method stub
 				return false;
 			}
 		});
@@ -226,20 +251,17 @@ public class Home extends ListActivity {
 	public class DownloadXmlTask extends AsyncTask<String, Void, ArrayList<FlickrPhoto>> {
 		
 		protected void onPreExecute() {
-
+			// Whilst processing request display Spinner 
 			m_dialog.setTitle("Searching for Photos...");
 			m_dialog.setMessage("Back in a jiffy");
 			m_dialog.setIndeterminate(true);
 			m_dialog.setCancelable(true);
-			m_dialog.show();
-			
+			m_dialog.show();	
 		}
 
-		
 		@Override
 	    protected ArrayList<FlickrPhoto> doInBackground(String... params) {
 			String url = params[0];
-				
 			
 				//Create ArrayList to hold the photos returned from Flickr API
 	    		ArrayList<FlickrPhoto> photos = new ArrayList<FlickrPhoto>(); 
@@ -249,6 +271,7 @@ public class Home extends ListActivity {
 	        	try {
 	        		InputStream stream = xml.downloadUrl(url);
 					photos = xml.parse(stream);
+					//Store last fetched URL to repurpose for Pull to refresh
 					PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString(PREF_QUERY, url).commit();
 
 					return photos;
@@ -263,7 +286,17 @@ public class Home extends ListActivity {
 	    
 	   
 	    protected void onPostExecute(ArrayList<FlickrPhoto> result) {  
-	    	
+	    	//If the query was unsuccessful - display Toast 
+	    	if(result.isEmpty()){
+	    		Context context = getApplicationContext();
+	    		CharSequence text = "Bummer we found no photos...";
+	    		int duration = Toast.LENGTH_LONG;
+
+	    		Toast toast = Toast.makeText(context, text, duration);
+	    		toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+	    		toast.show();
+	    	}
+	    	//Close out the spinner and display results
 	    	FlickrPhotoAdapter adapter = new FlickrPhotoAdapter(getApplicationContext(), result);
 	    	setListAdapter(adapter);	
 	    	m_dialog.dismiss();
@@ -272,7 +305,7 @@ public class Home extends ListActivity {
 	   
 	}
 	
-	//Pull down to reload page function 
+	//Pull down to reload page function - Parse Stored URL and add increment by one page and repull data
 	public void getNextFlickrPage(String url){
 		
 		int start = url.indexOf("page=");

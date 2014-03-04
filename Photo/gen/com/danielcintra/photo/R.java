@@ -66,6 +66,7 @@ public final class R {
         public static final int contact=0x7f06000b;
         public static final int date=0x7f060011;
         public static final int description=0x7f060008;
+        public static final int dialog_message=0x7f060013;
         public static final int drawerTitle=0x7f06000e;
         public static final int drawer_close=0x7f06000d;
         public static final int drawer_open=0x7f06000c;
