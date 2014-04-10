@@ -42,7 +42,7 @@ public class Home extends ListActivity {
 	ProgressDialog m_dialog;
 	static final int PICK_CONTACT= 1;
 	public static final String PREF_QUERY = "query";
-	public static final String API_KEY = "6ac3f568073aea1cca183c3ca08e974c&tags=";
+	public static final String API_KEY = "INSERT API KEY HERE";
 	public static final String FLICKR_PHOTO_SEARCH = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=";
 	public static final String FLICKR_PHOTO_SEARCH_END = "&page=1&extras=date_taken,owner_name,description";
 	PullToRefreshListView pullToRefreshList;
